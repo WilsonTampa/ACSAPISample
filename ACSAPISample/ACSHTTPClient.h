@@ -9,11 +9,17 @@
 #import "AFHTTPRequestOperationManager.h"
 #import "AFNetworkActivityIndicatorManager.h"
 
-@interface ACSHTTPClient : AFHTTPRequestOperationManager
+@interface ACSHTTPClient : AFHTTPRequestOperationManager 
 + (instancetype)sharedClient;
 
-//POSTs
-- (void)readBarcode: (NSDictionary*)parameters
-       completion: (void (^)(NSInteger, NSMutableArray *, NSError *))callback;
 
+//POSTs
+- (void)startOCR: (NSDictionary*)parameters
+       completion: (void (^)(NSString *, NSError *))callback;
+
+- (void)uploadWorkFile: (NSDictionary*)parameters
+         completion: (void (^)(NSData *, NSError *))callback;
+
+-(void)getOCRResults:(NSString*)processId
+          completion: (void (^)(NSString *, NSString *, NSError *))callback;
 @end

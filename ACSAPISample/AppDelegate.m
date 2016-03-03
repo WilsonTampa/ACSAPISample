@@ -19,25 +19,47 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     [[AFNetworkActivityLogger sharedLogger] startLogging];
     [[AFNetworkActivityLogger sharedLogger] setLevel:AFLoggerLevelDebug];
+    /************Step 1 - Upload an Image to create a workFile for the service to work on**********************/
     NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys: nil];
     [[ACSHTTPClient sharedClient]
-     readBarcode:parameters
-     completion:^(NSInteger statusCode,  NSMutableArray *theEventBack, NSError *error) {
-         
-         if (statusCode == 200) {
-             
-            
-         }
-         else
-         {
-             UIAlertView *alert =
-             [[UIAlertView alloc] initWithTitle:@"Unable to Read Barcode"
-                                        message:@"Please check your Internet connection and try again."
-                                       delegate:nil
-                              cancelButtonTitle:@"OK"
-                              otherButtonTitles:nil];
-             [alert show];
-         }
+     uploadWorkFile:parameters
+     completion:^(NSData *theResults, NSError *error) {
+         NSLog(@"Got back");
+         //  call with workFileId
+         NSError *jsonError;
+         id responseData = [NSJSONSerialization
+                            JSONObjectWithData:theResults
+                            options:kNilOptions
+                            error:&jsonError];
+         NSDictionary *parameters = @{@"input":
+                                          @{@"src":
+                                                @{@"fileId": [responseData objectForKey:@"fileId"]},
+                                            @"dest":
+                                                @{@"format": @"text"}}};
+         /******************Step 2 - Start the OCR process on the workFile we created******************/
+         [[ACSHTTPClient sharedClient] startOCR:parameters
+                                     completion:^(NSString *processId, NSError *error)
+                                    {
+                                         NSLog(@"SUCCESS");
+         /******************Step 3 - Get the OCR results for the ProcessId we started******************/
+         [[ACSHTTPClient sharedClient] getOCRResults:processId
+                                     completion:^(NSString *theState, NSString *theOCRResults, NSError *error)
+                                    {
+                                        //check to see if state="complete". If not, we need to keep checking
+                                        NSLog(@"RESULTS: %@",theOCRResults);
+                                    }];
+                                }];
+
+       //  else
+       //  {
+       //      UIAlertView *alert =
+       //      [[UIAlertView alloc] initWithTitle:@"Unable to Read Barcode"
+       //                                 message:@"Please check your Internet connection and try again."
+         //                              delegate:nil
+           //                   cancelButtonTitle:@"OK"
+             //                 otherButtonTitles:nil];
+           //  [alert show];
+        // }
      }];
 
     return YES;
