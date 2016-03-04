@@ -42,12 +42,15 @@
                                     {
                                          NSLog(@"SUCCESS");
          /******************Step 3 - Get the OCR results for the ProcessId we started******************/
-         [[ACSHTTPClient sharedClient] getOCRResults:processId
-                                     completion:^(NSString *theState, NSString *theOCRResults, NSError *error)
-                                    {
-                                        //check to see if state="complete". If not, we need to keep checking
-                                        NSLog(@"RESULTS: %@",theOCRResults);
-                                    }];
+       //  [[ACSHTTPClient sharedClient] getOCRResults:processId
+       //                              completion:^(NSString *theState, NSString *theOCRResults, NSError *error)
+       //                             {
+       //                                 int retries = 0;
+      //                                  //check to see if state="complete". If not, we need to keep checking
+      //                                  NSLog(@"RESULTS: %@",theOCRResults);
+      //                              }];
+                                        [self retryGetOCRResults:processId :0];
+                                        
                                 }];
 
        //  else
@@ -64,6 +67,31 @@
 
     return YES;
 }
+
+-(void)retryGetOCRResults:(NSString *)processId :(int)numRetries
+{
+    __block NSString *ocrStatus = @"start";
+    __block int theNumRetries = numRetries;
+    //while (retries <= 3 && ![ocrStatus isEqualToString:@"complete"])
+   // {
+        [[ACSHTTPClient sharedClient] getOCRResults:processId
+                                     completion:^(NSString *theState, NSString *theOCRResults, NSError *error)
+         {
+             //check to see if state="complete". If not, we need to keep checking
+             ocrStatus = theState;
+             if (![ocrStatus isEqualToString:@"complete"] && theNumRetries <= 12)
+             {
+                 NSLog(@"Trying again!!!!!!!!!!!!!!!!!!");
+                 theNumRetries++;
+                 [self retryGetOCRResults:processId :theNumRetries];
+                 
+             }
+             
+             NSLog(@"STATUS %@ ----- RESULTS: %@",ocrStatus, theOCRResults);
+         }];
+   //     }
+}
+
 
 - (void)applicationWillResignActive:(UIApplication *)application {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
