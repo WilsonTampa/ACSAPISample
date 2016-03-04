@@ -72,8 +72,7 @@
 {
     __block NSString *ocrStatus = @"start";
     __block int theNumRetries = numRetries;
-    //while (retries <= 3 && ![ocrStatus isEqualToString:@"complete"])
-   // {
+    
         [[ACSHTTPClient sharedClient] getOCRResults:processId
                                      completion:^(NSString *theState, NSString *theOCRResults, NSError *error)
          {
@@ -89,7 +88,7 @@
              
              NSLog(@"STATUS %@ ----- RESULTS: %@",ocrStatus, theOCRResults);
          }];
-   //     }
+   
 }
 
 
