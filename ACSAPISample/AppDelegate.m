@@ -80,9 +80,15 @@
              ocrStatus = theState;
              if (![ocrStatus isEqualToString:@"complete"] && theNumRetries <= 12)
              {
-                 NSLog(@"Trying again!!!!!!!!!!!!!!!!!!");
-                 theNumRetries++;
-                 [self retryGetOCRResults:processId :theNumRetries];
+                 ///******TODO: Need better method of polling, just going to wait a few seconds to give it time to process for now********/
+                 double delayInSeconds = 2.0; // number of seconds to wait
+                 dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
+                 dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+                     NSLog(@"Trying again!!!!!!!!!!!!!!!!!!");
+                     theNumRetries++;
+                     [self retryGetOCRResults:processId :theNumRetries];
+                 });
+                 
                  
              }
              
